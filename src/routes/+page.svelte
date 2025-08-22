@@ -3,17 +3,19 @@
 	<meta name="description" content="Student-centered Python Learning Tool" />
 </svelte:head>
 
-<main class="hero">
-	<h1>Get ready to start building with Python!</h1>
+<main>
+	<PythonSandbox />
 </main>
 
+<script>
+	import PythonSandbox from '$lib/components/PythonSandbox.svelte';
+</script>
+
 <style>
-	.hero {
-		min-height: 100vh;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		padding: 1.5rem;
+	main {
+		height: 100vh;
+		width: 100vw;
+		margin: 0;
+		padding: 0;
 	}
 </style>
