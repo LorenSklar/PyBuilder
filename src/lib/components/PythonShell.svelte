@@ -1,25 +1,25 @@
 <script lang="ts">
 	import { onMount, afterUpdate } from 'svelte';
 	
-	export let consoleOutput: string[] = [];
+	export let shellOutput: string[] = [];
 	
-	let consoleElement: HTMLDivElement;
+	let shellElement: HTMLDivElement;
 	
 	// Auto-scroll to bottom when new output arrives
 	afterUpdate(() => {
-		if (consoleElement) {
-			consoleElement.scrollTop = consoleElement.scrollHeight;
+		if (shellElement) {
+			shellElement.scrollTop = shellElement.scrollHeight;
 		}
 	});
 </script>
 
-<div class="console">
-	<div class="console-header">Python Console</div>
-	<div class="console-output" bind:this={consoleElement}>
-		{#if consoleOutput.length === 0}
+<div class="shell">
+	<div class="shell-header">Python Shell</div>
+	<div class="shell-output" bind:this={shellElement}>
+		{#if shellOutput.length === 0}
 			<span class="prompt">>>> </span>
 		{:else}
-			{#each consoleOutput as output, i}
+			{#each shellOutput as output, i}
 				<div class="output-line">
 					<span class="prompt">>>> </span>
 					<span class="output">{output}</span>
@@ -30,7 +30,7 @@
 </div>
 
 <style>
-	.console {
+	.shell {
 		height: 100%;
 		display: flex;
 		flex-direction: column;
@@ -39,7 +39,7 @@
 		background-color: #f8f9fa;
 	}
 
-	.console-header {
+	.shell-header {
 		padding: 0.5rem 1rem;
 		background-color: #e9ecef;
 		border-bottom: 1px solid #ccc;
@@ -48,7 +48,7 @@
 		font-size: 14px;
 	}
 
-	.console-output {
+	.shell-output {
 		flex: 1;
 		padding: 1rem;
 		overflow-y: auto;
@@ -72,21 +72,21 @@
 	}
 
 	/* Scrollbar styling */
-	.console-output::-webkit-scrollbar {
+	.shell-output::-webkit-scrollbar {
 		width: 8px;
 	}
 
-	.console-output::-webkit-scrollbar-track {
+	.shell-output::-webkit-scrollbar-track {
 		background: #f1f1f1;
 		border-radius: 4px;
 	}
 
-	.console-output::-webkit-scrollbar-thumb {
+	.shell-output::-webkit-scrollbar-thumb {
 		background: #c1c1c1;
 		border-radius: 4px;
 	}
 
-	.console-output::-webkit-scrollbar-thumb:hover {
+	.shell-output::-webkit-scrollbar-thumb:hover {
 		background: #a8a8a8;
 	}
 </style>

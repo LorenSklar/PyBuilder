@@ -3,10 +3,10 @@
 	import { config } from '../config.js';
 	import PythonEditor from './PythonEditor.svelte';
 	import ExecuteButton from './ExecuteButton.svelte';
-	import PythonConsole from './PythonConsole.svelte';
+	import PythonShell from './PythonShell.svelte';
 
 	let ws: WebSocket | null = null;
-	let consoleOutput: string[] = [];
+	let shellOutput: string[] = [];
 	let currentCode = '';
 
 	// Helper function for conditional logging
@@ -38,10 +38,10 @@
 				
 				// Show actual Python output and errors
 				if (data.type === 'stdout') {
-					consoleOutput = [...consoleOutput, data.content];
+					shellOutput = [...shellOutput, data.content];
 				} else if (data.type === 'stderr') {
 					// Show Python error messages
-					consoleOutput = [...consoleOutput, `Error: ${data.content}`];
+					shellOutput = [...shellOutput, `Error: ${data.content}`];
 				}
 				// Don't display execution_start or execution_complete status messages
 			} catch (error) {
@@ -99,8 +99,8 @@
 		<ExecuteButton on:execute={handleExecuteClick} />
 	</div>
 	
-	<div class="console-section">
-		<PythonConsole {consoleOutput} />
+	<div class="shell-section">
+		<PythonShell {shellOutput} />
 	</div>
 </div>
 
@@ -122,7 +122,7 @@
 		justify-content: center;
 	}
 
-	.console-section {
+	.shell-section {
 		flex: 1;
 	}
 
