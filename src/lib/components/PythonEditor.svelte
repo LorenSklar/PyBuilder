@@ -157,12 +157,12 @@
 		margin: 0;
 		border: none;
 		background-color: transparent;
-		color: transparent;
+		color: #333; /* Visible text - no more transparency */
 		resize: none;
 		outline: none;
 		box-sizing: border-box;
 		caret-color: #333;
-		z-index: 2;
+		z-index: 1; /* Below highlighting */
 	}
 
 	.code-highlight {
@@ -178,14 +178,14 @@
 		font-weight: 600;
 		line-height: 1.6;
 		border: none;
-		background-color: #f8f9fa;
-		color: #333;
+		background-color: transparent; /* Transparent background */
+		color: transparent; /* Transparent text - only highlighting visible */
 		box-sizing: border-box;
 		overflow: auto;
 		white-space: pre-wrap;
 		word-wrap: break-word;
-		z-index: 0;
-		pointer-events: none;
+		z-index: 2; /* Above textarea */
+		pointer-events: none; /* Clicks go through to textarea */
 	}
 
 	:global(.line-number) {
