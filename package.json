@@ -31,5 +31,9 @@
 		"vite": "^7.0.4",
 		"vitest": "^3.2.3",
 		"vitest-browser-svelte": "^0.1.0"
+	},
+	"dependencies": {
+		"@types/prismjs": "^1.26.5",
+		"prismjs": "^1.30.0"
 	}
 }
