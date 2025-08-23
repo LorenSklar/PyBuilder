@@ -1,7 +1,15 @@
 <script lang="ts">
 	import { onMount, afterUpdate } from 'svelte';
 	
-	export let shellOutput: string[] = [];
+	// Define output line types to match PythonSandbox
+	type OutputLine = 
+		| { type: 'stdout'; content: string }
+		| { type: 'traceback-header'; content: string }
+		| { type: 'traceback-file'; content: string }
+		| { type: 'traceback-code'; content: string }
+		| { type: 'traceback-error'; content: string };
+	
+	export let shellOutput: OutputLine[] = [];
 	
 	let shellElement: HTMLDivElement;
 	
@@ -14,17 +22,27 @@
 </script>
 
 <div class="shell">
-	<div class="shell-header">Python Shell</div>
+	<div class="component-header">Python Shell</div>
 	<div class="shell-output" bind:this={shellElement}>
 		{#if shellOutput.length === 0}
 			<span class="prompt">>>> </span>
 		{:else}
 			{#each shellOutput as output, i}
-				<div class="output-line">
-					<span class="prompt">>>> </span>
-					<span class="output">{output}</span>
-				</div>
+				{#if output.type === 'stdout'}
+					<div class="output-line">
+						<span class="output">{output.content}</span>
+					</div>
+				{:else if output.type === 'traceback-header'}
+					<div class="traceback-header">{output.content}</div>
+				{:else if output.type === 'traceback-file'}
+					<div class="traceback-file">{output.content}</div>
+				{:else if output.type === 'traceback-code'}
+					<div class="traceback-code">{output.content}</div>
+				{:else if output.type === 'traceback-error'}
+					<div class="traceback-error">{output.content}</div>
+				{/if}
 			{/each}
+			<span class="prompt">>>> </span>
 		{/if}
 	</div>
 </div>
@@ -39,13 +57,13 @@
 		background-color: #f8f9fa;
 	}
 
-	.shell-header {
+	.component-header {
 		padding: 0.5rem 1rem;
 		background-color: #e9ecef;
 		border-bottom: 1px solid #ccc;
 		font-weight: 600;
 		color: #495057;
-		font-size: 14px;
+		font-size: 18px;
 	}
 
 	.shell-output {
@@ -53,8 +71,9 @@
 		padding: 1rem;
 		overflow-y: auto;
 		font-family: 'Courier New', monospace;
-		font-size: 14px;
-		line-height: 1.4;
+		font-size: 18px;
+		font-weight: 600;
+		line-height: 1.6;
 		color: #333;
 	}
 
@@ -69,6 +88,34 @@
 
 	.output {
 		color: #333;
+	}
+
+	/* Traceback styling to match IDLE */
+	.traceback-header {
+		color: #d73a49;
+		font-weight: 700;
+		margin-bottom: 0.25rem;
+	}
+
+	.traceback-file {
+		color: #d73a49;
+		font-weight: 700;
+		margin-left: 1rem;
+		margin-bottom: 0.25rem;
+	}
+
+	.traceback-code {
+		color: #d73a49;
+		font-weight: 700;
+		margin-left: 2rem;
+		margin-bottom: 0.25rem;
+	}
+
+	.traceback-error {
+		color: #d73a49;
+		font-weight: 700;
+		margin-left: 1rem;
+		margin-bottom: 0.5rem;
 	}
 
 	/* Scrollbar styling */

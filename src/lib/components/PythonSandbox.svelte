@@ -1,13 +1,59 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
-	import { config } from '../config.js';
 	import PythonEditor from './PythonEditor.svelte';
 	import ExecuteButton from './ExecuteButton.svelte';
 	import PythonShell from './PythonShell.svelte';
+	import { config } from '$lib/config';
 
 	let ws: WebSocket | null = null;
-	let shellOutput: string[] = [];
 	let currentCode = '';
+	
+	// Define output line types
+	type OutputLine = 
+		| { type: 'stdout'; content: string }
+		| { type: 'traceback-header'; content: string }
+		| { type: 'traceback-file'; content: string }
+		| { type: 'traceback-code'; content: string }
+		| { type: 'traceback-error'; content: string };
+
+	let shellOutput: OutputLine[] = [];
+
+	// Parse Python traceback into structured lines
+	function parseTraceback(content: string): OutputLine[] {
+		const lines = content.split('\n');
+		const result: OutputLine[] = [];
+		
+		for (let i = 0; i < lines.length; i++) {
+			const line = lines[i].trim();
+			if (!line) continue;
+			
+			if (line.startsWith('Traceback (most recent call last):')) {
+				result.push({ type: 'traceback-header', content: line });
+			} else if (line.startsWith('File ') && line.includes('line') && line.includes('in <module>')) {
+				// Extract just the line number and simplify
+				const match = line.match(/line (\d+)/);
+				if (match) {
+					result.push({ type: 'traceback-file', content: `line ${match[1]} in <module>` });
+				}
+			} else if (line.startsWith('File ') && line.includes('line') && !line.includes('in <module>')) {
+				// Other file references in the call stack
+				const match = line.match(/line (\d+)/);
+				if (match) {
+					const functionMatch = line.match(/in (.+)/);
+					const functionName = functionMatch ? functionMatch[1] : 'unknown function';
+					result.push({ type: 'traceback-file', content: `line ${match[1]} in ${functionName}` });
+				}
+			} else if (i > 0 && lines[i-1].includes('line') && !line.startsWith('File') && !line.startsWith('Traceback')) {
+				// This is the actual code line that caused the error
+				result.push({ type: 'traceback-code', content: line });
+			} else if (line.includes('Error:') || line.includes('Exception:') || line.includes('NameError') || 
+					   line.includes('TypeError') || line.includes('ValueError') || line.includes('SyntaxError')) {
+				result.push({ type: 'traceback-error', content: line });
+			}
+		}
+		
+		return result;
+	}
 
 	// Helper function for conditional logging
 	function log(message: string, data?: any) {
@@ -38,10 +84,11 @@
 				
 				// Show actual Python output and errors
 				if (data.type === 'stdout') {
-					shellOutput = [...shellOutput, data.content];
+					shellOutput = [...shellOutput, { type: 'stdout', content: data.content }];
 				} else if (data.type === 'stderr') {
-					// Show Python error messages
-					shellOutput = [...shellOutput, `Error: ${data.content}`];
+					// Parse traceback for proper styling
+					const tracebackLines = parseTraceback(data.content);
+					shellOutput = [...shellOutput, ...tracebackLines];
 				}
 				// Don't display execution_start or execution_complete status messages
 			} catch (error) {

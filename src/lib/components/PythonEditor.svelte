@@ -6,6 +6,7 @@
 	export let code = '';
 	let textarea: HTMLTextAreaElement;
 	let codeDisplay: HTMLPreElement;
+	let lineNumbersContainer: HTMLDivElement;
 	let timeoutId: number;
 
 	// Debounced syntax highlighting
@@ -17,13 +18,24 @@
 				try {
 					const highlighted = Prism.highlight(code, Prism.languages.python, 'python');
 					codeDisplay.innerHTML = highlighted;
+					updateLineNumbers();
 				} catch (error) {
 					console.error('Highlighting error:', error);
 				}
 			} else if (codeDisplay) {
 				codeDisplay.innerHTML = '';
+				updateLineNumbers();
 			}
 		}, 200);
+	}
+
+	// Update line numbers to match current code
+	function updateLineNumbers() {
+		if (lineNumbersContainer) {
+			const lines = code.split('\n');
+			const lineNumbers = lines.map((_, i) => `<span class="line-number">${i + 1}</span>`).join('\n');
+			lineNumbersContainer.innerHTML = lineNumbers;
+		}
 	}
 
 	// Auto-resize textarea to fit content
@@ -52,24 +64,34 @@
 </script>
 
 <div class="editor">
-	<div class="editor-header">Python Editor</div>
+	<div class="component-header">Python Editor</div>
 	<div class="editor-content">
-		<!-- Hidden textarea for actual input -->
-		<textarea
-			bind:this={textarea}
-			bind:value={code}
-			on:input={handleInput}
-			placeholder="Enter your Python code here..."
-			class="code-input"
-			spellcheck="false"
-		></textarea>
-		
-		<!-- Visible pre element for highlighted code -->
-		<pre 
-			bind:this={codeDisplay}
-			class="code-highlight"
-			aria-hidden="true"
-		></pre>
+		<!-- Single editor container with integrated line numbers -->
+		<div class="editor-container">
+			<!-- Line numbers -->
+			<div 
+				bind:this={lineNumbersContainer}
+				class="line-numbers"
+				aria-hidden="true"
+			></div>
+			
+			<!-- Textarea for input -->
+			<textarea
+				bind:this={textarea}
+				bind:value={code}
+				on:input={handleInput}
+				placeholder="Enter your Python code here..."
+				class="code-input"
+				spellcheck="false"
+			></textarea>
+			
+			<!-- Syntax highlighting overlay -->
+			<pre 
+				bind:this={codeDisplay}
+				class="code-highlight"
+				aria-hidden="true"
+			></pre>
+		</div>
 	</div>
 </div>
 
@@ -80,13 +102,13 @@
 		flex-direction: column;
 	}
 
-	.editor-header {
+	.component-header {
 		padding: 0.5rem 1rem;
 		background-color: #e9ecef;
 		border-bottom: 1px solid #ccc;
 		font-weight: 600;
 		color: #495057;
-		font-size: 14px;
+		font-size: 18px;
 	}
 
 	.editor-content {
@@ -94,11 +116,38 @@
 		position: relative;
 	}
 
-	.code-input {
+	.editor-container {
+		position: relative;
+		height: 100%;
+		border: 1px solid #ccc;
+		border-radius: 4px;
+		overflow: hidden;
+	}
+
+	.line-numbers {
 		position: absolute;
 		top: 0;
 		left: 0;
-		width: 100%;
+		width: 40px;
+		height: 100%;
+		padding: 1rem 0.5rem;
+		font-family: 'Courier New', monospace;
+		font-size: 18px;
+		font-weight: 600;
+		line-height: 1.6;
+		border-right: 2px solid #ccc;
+		background-color: #f8f9fa;
+		color: #999;
+		box-sizing: border-box;
+		z-index: 1;
+		pointer-events: none;
+	}
+
+	.code-input {
+		position: absolute;
+		top: 0;
+		left: 40px;
+		width: calc(100% - 40px);
 		height: 100%;
 		font-family: 'Courier New', monospace;
 		font-size: 18px;
@@ -106,8 +155,7 @@
 		line-height: 1.6;
 		padding: 1rem;
 		margin: 0;
-		border: 1px solid #ccc;
-		border-radius: 4px;
+		border: none;
 		background-color: transparent;
 		color: transparent;
 		resize: none;
@@ -120,8 +168,8 @@
 	.code-highlight {
 		position: absolute;
 		top: 0;
-		left: 0;
-		width: 100%;
+		left: 40px;
+		width: calc(100% - 40px);
 		height: 100%;
 		margin: 0;
 		padding: 1rem;
@@ -129,16 +177,24 @@
 		font-size: 18px;
 		font-weight: 600;
 		line-height: 1.6;
-		border: 1px solid #ccc;
-		border-radius: 4px;
+		border: none;
 		background-color: #f8f9fa;
 		color: #333;
 		box-sizing: border-box;
 		overflow: auto;
 		white-space: pre-wrap;
 		word-wrap: break-word;
-		z-index: 1;
+		z-index: 0;
 		pointer-events: none;
+	}
+
+	:global(.line-number) {
+		display: block;
+		color: #999;
+		text-align: right;
+		padding-right: 0.5rem;
+		user-select: none;
+		font-weight: 600;
 	}
 
 	.code-input:focus {
@@ -164,7 +220,7 @@
 	}
 
 	:global(.code-highlight .token.keyword) {
-		font-weight: 700 !important;
+		font-weight: 600 !important;
 	}
 
 	:global(.code-highlight .token.string) {
